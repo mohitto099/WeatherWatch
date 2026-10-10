@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 import airflow_client as af  # noqa: E402
 import db  # noqa: E402
+from geo import canonical_city  # noqa: E402
 from status import build_status  # noqa: E402
 
 CACHE_MINUTES = int(os.getenv("CACHE_MINUTES", "15"))
@@ -54,7 +55,8 @@ def health():
 
 @app.get("/api/weather")
 def get_weather(city: str = Query(..., max_length=100)):
-    city = _clean_city(city)
+    typed = _clean_city(city)
+    city = canonical_city(typed)   # "Washington" -> "Washington, D.C." (the name the pipeline stores)
 
     try:
         cached = db.get_fresh_record(city, CACHE_MINUTES)
@@ -75,7 +77,7 @@ def get_weather(city: str = Query(..., max_length=100)):
                         return {"status": "triggered", "run_id": existing, "city": city}
                 except af.AirflowError:
                     pass  # stale entry - fall through and start a fresh run
-            run_id = af.trigger_dag_run(city)
+            run_id = af.trigger_dag_run(typed)   # the pipeline geocodes the typed name itself
             _inflight[key] = run_id
     except af.AirflowError as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -101,7 +103,7 @@ def pipeline_status(run_id: str):
 
 @app.get("/api/weather/latest")
 def latest_weather(city: str = Query(..., max_length=100)):
-    city = _clean_city(city)
+    city = canonical_city(_clean_city(city))
     try:
         record = db.get_latest_record(city)
     except Exception as e:

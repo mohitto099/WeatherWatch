@@ -36,6 +36,4 @@ Open http://localhost:8000/docs - an interactive page to try every endpoint.
 4. `GET /api/weather?city=Paris` again -> `"status": "cached"` instantly (no pipeline run).
 
 ## Notes
-- Use the city's proper name (e.g. "Mumbai"). Aliases like "Bombay" still run the pipeline, but
-  `/latest` looks up by the name Open-Meteo returns, so it won't find them.
 - Airflow login defaults to airflow/airflow. Change `AIRFLOW_USERNAME` / `AIRFLOW_PASSWORD` in `.env` if you changed it.

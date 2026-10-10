@@ -62,7 +62,7 @@ export function usePipeline() {
         if (!alive()) return;
 
         if (status.status === "done") {
-          const latest = await getLatest(city);
+          const latest = await getLatest(first.city || city);
           if (!alive()) return;
           setState({
             ...INITIAL,
