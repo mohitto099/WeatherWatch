@@ -15,7 +15,7 @@ Runs on your machine (not in Docker) and talks to:
 ## Setup (PowerShell, from this `backend` folder)
 
     python -m venv venv
-    venv\Scripts\Activate.ps1
+    from here -> venv\Scripts\Activate.ps1
     python -m pip install --upgrade pip
     python -m pip install -r requirements.txt
     Copy-Item .env.example .env

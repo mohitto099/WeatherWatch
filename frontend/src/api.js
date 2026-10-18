@@ -1,5 +1,5 @@
 // All calls to the WeatherWatch FastAPI backend live here.
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL ?? "";
 
 export class ApiError extends Error {
   constructor(message, status) {
