@@ -10,12 +10,13 @@ Runs on your machine (not in Docker) and talks to:
 | `GET /api/weather?city=X` | Fresh record (< 15 min) -> `{"status":"cached","data":{...}}`. Otherwise triggers the Airflow DAG and returns `{"status":"triggered","run_id":"..."}` immediately. |
 | `GET /api/pipeline/status/{run_id}` | Live stage: `queued` / `running` / `done` / `failed`, the current stage, and a 4-step `stages` list for the React step tracker. |
 | `GET /api/weather/latest?city=X` | Newest stored record. Call it once status is `done`. |
+| `GET /api/weather/recent?limit=8` | Cities anyone searched recently, newest first (the cards under the search box). |
 | `GET /health` | Liveness check. |
 
 ## Setup (PowerShell, from this `backend` folder)
 
     python -m venv venv
-    from here -> venv\Scripts\Activate.ps1
+    venv\Scripts\Activate.ps1
     python -m pip install --upgrade pip
     python -m pip install -r requirements.txt
     Copy-Item .env.example .env

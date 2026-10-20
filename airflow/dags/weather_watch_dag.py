@@ -84,9 +84,9 @@ def weather_watch_dag():
         record["observation_time"] = datetime.fromisoformat(record["observation_time"])
         row_id = load(record)
         if row_id:
-            print(f"[load] inserted row id {row_id}")
+            print(f"[load] current_weather updated; added weather_history row {row_id}")
         else:
-            print("[load] duplicate observation - skipped (already stored)")
+            print("[load] current_weather refreshed; this observation was already in weather_history")
         return {"row_id": row_id, "city": record["city"]}
 
     @task(task_id="log_result")
@@ -96,7 +96,7 @@ def weather_watch_dag():
         # what the status endpoint needs to report). Failure details are logged by
         # _log_task_failure above.
         city = _get_city(dag_run, params)
-        outcome = "stored new observation" if loaded.get("row_id") else "duplicate observation, nothing new stored"
+        outcome = "new observation stored" if loaded.get("row_id") else "same observation as before, current record refreshed"
         print(f"[log_result] PIPELINE SUCCEEDED for '{city}': {outcome}")
 
     extracted = extract_validate()

@@ -62,9 +62,9 @@ def main():
         result = run_for_city(city)
 
         if result["status"] == "success":
-            print(f"[{city}] OK - inserted row id {result['row_id']}")
+            print(f"[{city}] OK - new history row id {result['row_id']}")
         elif result["status"] == "duplicate_skipped":
-            print(f"[{city}] SKIPPED - duplicate record (already have this observation)")
+            print(f"[{city}] REFRESHED - observation already in history, current_weather updated")
         else:
             print(f"[{city}] FAILED - {result['detail']}")
         print()

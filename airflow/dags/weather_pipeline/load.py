@@ -1,22 +1,28 @@
 """
 load.py
 -------
-Stage 3 of the pipeline: LOAD.
+Stage 3 of the pipeline: LOAD (two-table design).
 
-Responsibilities:
-- Connect to Supabase PostgreSQL using the connection string in .env
-- Insert the clean record, relying on the UNIQUE(city, observation_time)
-  constraint to silently avoid duplicate rows (ON CONFLICT DO NOTHING)
+For every live observation, ONE transaction does two things:
+  1. weather_history  : append the observation (duplicates are ignored, so history stays clean)
+  2. current_weather  : upsert the single row for this city and refresh its fetched_at
+                        (that timestamp drives the 15-minute cache)
+
+If either statement fails, both are rolled back.
+
+Returns the new weather_history row id, or None if that exact observation was
+already in history. current_weather is refreshed in both cases.
 """
 
 import os
+
 import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
 
-INSERT_SQL = """
-    INSERT INTO weather_observations
+HISTORY_INSERT_SQL = """
+    INSERT INTO weather_history
         (city, country, latitude, longitude, temperature, humidity,
          pressure, wind_speed, weather_code, observation_time, source)
     VALUES
@@ -27,14 +33,28 @@ INSERT_SQL = """
     RETURNING id;
 """
 
-FETCH_FRESH_SQL = """
-    SELECT city, country, latitude, longitude, temperature, humidity,
-           pressure, wind_speed, weather_code, observation_time, fetched_at
-    FROM weather_observations
-    WHERE city = %(city)s
-      AND fetched_at > NOW() - INTERVAL '15 minutes'
-    ORDER BY fetched_at DESC
-    LIMIT 1;
+# The WHERE clause stops an older observation from overwriting a newer one.
+# "<=" (not "<") lets a repeat of the same observation still refresh fetched_at.
+CURRENT_UPSERT_SQL = """
+    INSERT INTO current_weather
+        (city, country, latitude, longitude, temperature, humidity,
+         pressure, wind_speed, weather_code, observation_time, fetched_at)
+    VALUES
+        (%(city)s, %(country)s, %(latitude)s, %(longitude)s, %(temperature)s,
+         %(humidity)s, %(pressure)s, %(wind_speed)s, %(weather_code)s,
+         %(observation_time)s, NOW())
+    ON CONFLICT (city) DO UPDATE SET
+        country          = EXCLUDED.country,
+        latitude         = EXCLUDED.latitude,
+        longitude        = EXCLUDED.longitude,
+        temperature      = EXCLUDED.temperature,
+        humidity         = EXCLUDED.humidity,
+        pressure         = EXCLUDED.pressure,
+        wind_speed       = EXCLUDED.wind_speed,
+        weather_code     = EXCLUDED.weather_code,
+        observation_time = EXCLUDED.observation_time,
+        fetched_at       = NOW()
+    WHERE current_weather.observation_time <= EXCLUDED.observation_time;
 """
 
 
@@ -46,32 +66,21 @@ def get_connection():
 
 
 def load(record: dict) -> int | None:
-    """Insert one record. Returns the new row's id, or None if it was a duplicate."""
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(INSERT_SQL, record)
-            result = cur.fetchone()
-            conn.commit()
-            return result[0] if result else None
+    """Write one clean record to weather_history and current_weather in a single transaction."""
+    conn = get_connection()
+    try:
+        with conn:  # commits if the block succeeds, rolls back if anything raises
+            with conn.cursor() as cur:
+                cur.execute(HISTORY_INSERT_SQL, record)
+                row = cur.fetchone()
 
+                # Only live readings define "current weather" (a future backfill must not overwrite it)
+                if record.get("source", "live") == "live":
+                    cur.execute(CURRENT_UPSERT_SQL, record)
 
-def get_fresh_cached_record(city: str) -> dict | None:
-    """
-    Used by the FastAPI caching layer: returns a record for `city` if one was
-    fetched in the last 15 minutes, else None. Keeps the cache rule in one place.
-    """
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(FETCH_FRESH_SQL, {"city": city})
-            row = cur.fetchone()
-            if not row:
-                return None
-            columns = [
-                "city", "country", "latitude", "longitude", "temperature",
-                "humidity", "pressure", "wind_speed", "weather_code",
-                "observation_time", "fetched_at",
-            ]
-            return dict(zip(columns, row))
+                return row[0] if row else None
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
@@ -79,7 +88,6 @@ if __name__ == "__main__":
     from extract import extract
     from transform import transform
 
-    raw = extract("Mumbai")
-    clean = transform(raw)
+    clean = transform(extract("Mumbai"))
     new_id = load(clean)
-    print(f"Inserted row id: {new_id}" if new_id else "Duplicate - skipped")
+    print(f"New history row id: {new_id}" if new_id else "Already in history - current_weather refreshed")

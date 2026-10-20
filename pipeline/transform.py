@@ -6,7 +6,7 @@ simplified 4-task DAG).
 
 Responsibilities:
 - Flatten the raw extract() output into a single clean record using Pandas
-- Standardize timestamp, types, and field names to match weather_observations
+- Standardize timestamp, types, and field names to match the weather tables
 - Run data quality checks (ranges, required fields, valid timestamp)
 
 Raises DataQualityError if a record fails validation - the caller decides
@@ -25,7 +25,7 @@ class DataQualityError(Exception):
 def transform(extracted: dict, source: str = "live") -> dict:
     """
     Turn extract.extract()'s output into a flat dict matching the
-    weather_observations table schema.
+    weather_history / current_weather schema.
     """
     location = extracted["location"]
     current = extracted["raw"]["current"]

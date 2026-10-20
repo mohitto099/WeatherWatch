@@ -34,7 +34,7 @@ Runs the Phase 1 ETL as an on-demand Airflow 3 DAG:
 1. Find `weather_watch_dag`, switch the pause toggle ON.
 2. Click Trigger, enter a city (e.g. London), confirm.
 3. Watch the 4 tasks turn green. Click a task -> Logs to see its output.
-4. Check Supabase -> Table Editor -> weather_observations for the new row.
+4. Check Supabase -> Table Editor -> current_weather (latest row per city) and weather_history (every observation).
 
 ## Useful commands
 

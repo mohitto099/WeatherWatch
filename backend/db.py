@@ -1,7 +1,7 @@
 """
 db.py
 -----
-Read-only access to weather_observations for the API.
+Read-only access to current_weather (one row per city) for the API.
 (Writing is done only by the Airflow pipeline - the API never inserts.)
 """
 
@@ -14,7 +14,7 @@ COLUMNS = [
     "city", "country", "latitude", "longitude", "temperature", "humidity",
     "pressure", "wind_speed", "weather_code", "observation_time", "fetched_at",
 ]
-_SELECT = f"SELECT {', '.join(COLUMNS)} FROM weather_observations"
+_SELECT = f"SELECT {', '.join(COLUMNS)} FROM current_weather"
 
 # WMO weather codes used by Open-Meteo -> readable text
 WMO = {
@@ -65,11 +65,18 @@ def get_fresh_record(city: str, max_age_minutes: int) -> dict | None:
 
 
 def get_latest_record(city: str) -> dict | None:
-    """Newest stored record for `city`, regardless of age."""
+    """The stored current record for `city`, regardless of age."""
     with _cursor() as cur:
         cur.execute(
-            _SELECT + " WHERE lower(city) = lower(%s) ORDER BY observation_time DESC LIMIT 1",
+            _SELECT + " WHERE lower(city) = lower(%s) LIMIT 1",
             (city,),
         )
         row = cur.fetchone()
         return _to_dict(row) if row else None
+
+
+def list_recent(limit: int) -> list[dict]:
+    """The most recently refreshed cities (one row each), newest first. Shared by all users."""
+    with _cursor() as cur:
+        cur.execute(_SELECT + " ORDER BY fetched_at DESC LIMIT %s", (limit,))
+        return [_to_dict(row) for row in cur.fetchall()]

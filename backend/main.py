@@ -6,6 +6,7 @@ GET /api/weather?city=X              cache hit  -> {"status": "cached", "data": 
                                                    {"status": "triggered", "run_id": "..."} immediately
 GET /api/pipeline/status/{run_id}    live stage of the running pipeline (React polls this)
 GET /api/weather/latest?city=X       newest stored record (call once status is "done")
+GET /api/weather/recent?limit=8      cities anyone searched recently, newest first
 GET /health
 """
 
@@ -99,6 +100,15 @@ def pipeline_status(run_id: str):
     result["run_id"] = run_id
     result["city"] = (run.get("conf") or {}).get("city")
     return result
+
+
+@app.get("/api/weather/recent")
+def recent_weather(limit: int = Query(8, ge=1, le=24)):
+    """Cities anyone has searched recently, newest first (powers the cards under the search box)."""
+    try:
+        return {"data": db.list_recent(limit)}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database unavailable: {e}")
 
 
 @app.get("/api/weather/latest")

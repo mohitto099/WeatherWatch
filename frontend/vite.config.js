@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    allowedHosts: [".trycloudflare.com"],
-    proxy: { "/api": "http://localhost:8000" },
+    allowedHosts: [".trycloudflare.com"],        // lets a cloudflared tunnel URL reach the dev server
+    proxy: { "/api": "http://localhost:8000" },  // the browser only talks to this server; /api goes to FastAPI
   },
 });

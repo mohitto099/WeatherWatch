@@ -1,13 +1,10 @@
+import { useCountUp } from "../useCountUp.js";
+import { adviceFor, iconFor, isNightAt, minutesSince } from "../weatherUtils.js";
+
 // Open-Meteo times are the city's local wall-clock time, so show them as written.
 function formatObserved(iso) {
   const d = new Date(iso);
   return d.toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-}
-
-// fetched_at is stored in UTC without a timezone marker.
-function minutesAgo(iso) {
-  const utc = /Z|[+-]\d\d:?\d\d$/.test(iso) ? iso : iso + "Z";
-  return Math.max(0, Math.round((Date.now() - new Date(utc).getTime()) / 60000));
 }
 
 function Metric({ label, value, unit }) {
@@ -23,8 +20,11 @@ function Metric({ label, value, unit }) {
 }
 
 export default function WeatherCard({ data, source, elapsedMs }) {
-  const ago = minutesAgo(data.fetched_at);
+  const ago = minutesSince(data.fetched_at);
   const fromCache = source === "cache";
+  const night = isNightAt(data.observation_time);
+  const tip = adviceFor(data);
+  const temp = useCountUp(data.temperature);
 
   return (
     <section className="card weather">
@@ -41,9 +41,17 @@ export default function WeatherCard({ data, source, elapsedMs }) {
         </span>
       </div>
 
-      <div className="temp">
-        {Math.round(data.temperature)}
-        <small>°C</small>
+      <div className="hero-row">
+        <div className="temp">
+          {Math.round(temp)}
+          <small>°C</small>
+        </div>
+        <div className="wx-icon" aria-hidden="true">{iconFor(data.weather_code, night)}</div>
+      </div>
+
+      <div className="tip" role="note">
+        <span className="tip-icon" aria-hidden="true">{tip.icon}</span>
+        <span>{tip.text}</span>
       </div>
 
       <div className="metrics">

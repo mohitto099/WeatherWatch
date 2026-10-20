@@ -59,10 +59,10 @@ weather-watch/
 ├── .gitignore         # keeps .env and junk out of git
 ├── requirements.txt
 ├── sql/
-│   └── schema.sql     # weather_observations table definition
+│   └── schema.sql     # current_weather + weather_history tables (migrate_to_two_tables.sql upgrades an old database)
 └── pipeline/
     ├── extract.py       # Task 1: extract + validate
     ├── transform.py     # Task 2: transform + quality check
-    ├── load.py           # Task 3: load (+ cache-check helper for FastAPI later)
+    ├── load.py           # Task 3: load (history append + current upsert)
     └── run_pipeline.py   # ties the three stages together, standalone
 ```
