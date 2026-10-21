@@ -11,6 +11,8 @@ Runs on your machine (not in Docker) and talks to:
 | `GET /api/pipeline/status/{run_id}` | Live stage: `queued` / `running` / `done` / `failed`, the current stage, and a 4-step `stages` list for the React step tracker. |
 | `GET /api/weather/latest?city=X` | Newest stored record. Call it once status is `done`. |
 | `GET /api/weather/recent?limit=8` | Cities anyone searched recently, newest first (the cards under the search box). |
+| `GET /api/analytics/summary?window=1M` | Spark results for every analysed city over 1W, 1M, 6M or 1Y. `data` is null until the Spark job has run. |
+| `GET /api/analytics/trend?city=X&days=30` | Daily average temperature and rolling 7-day average for the chart. |
 | `GET /health` | Liveness check. |
 
 ## Setup (PowerShell, from this `backend` folder)

@@ -34,3 +34,7 @@ export const getStatus = (runId) => request(`/api/pipeline/status/${q(runId)}`);
 export const getLatest = (city) => request(`/api/weather/latest?city=${q(city)}`);
 // Cities anyone searched recently, newest first -> {data: [record, ...]}
 export const getRecent = (limit = 8) => request(`/api/weather/recent?limit=${limit}`);
+// Spark results for every analysed city over one window ("1W" | "1M" | "6M" | "1Y") -> {data: {...} | null}
+export const getAnalytics = (window) => request(`/api/analytics/summary?window=${q(window)}`);
+// Daily average temperature + rolling 7-day average -> {city, data: [{day, avg_temp, rolling_7d_avg_temp}]}
+export const getTrend = (city, days) => request(`/api/analytics/trend?city=${q(city)}&days=${days}`);

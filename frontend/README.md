@@ -20,6 +20,8 @@ Open http://localhost:5173
 - **A tip** for the current weather ("Thunderstorms in the area. Stay indoors...", "Sunny day. Great weather to plan a hike.").
 - **Recently searched cities**: shared by everyone using the app. Click a card to load it
   (instant if under 15 minutes old, otherwise it refreshes through the pipeline).
+- **Historical analytics** (from the Spark job): a 1W / 1M / 6M / 1Y toggle, a city comparison with hottest / coldest / rainiest,
+  and a daily temperature trend chart. Hidden until the Spark job has run.
 - Live pipeline tracker, and a "Served from cache" / "Fresh from pipeline" badge with timing.
 - Animations stop automatically for users who set "reduce motion" in their operating system.
 

@@ -1,0 +1,20 @@
+# Run the analytics job once:   docker compose run --rm spark-job
+services:
+  spark-job:
+    build: .
+    # Reuses the Supabase connection string you already have for the backend
+    env_file: ../backend/.env
+    environment:
+      TZ: UTC
+      PYSPARK_PYTHON: python3
+    volumes:
+      - ./analytics_job.py:/opt/job/analytics_job.py:ro
+    command:
+      - /opt/spark/bin/spark-submit
+      - --master
+      - local[*]
+      - --driver-memory
+      - 1g
+      - --conf
+      - spark.ui.enabled=false
+      - /opt/job/analytics_job.py

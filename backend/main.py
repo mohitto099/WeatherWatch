@@ -7,6 +7,8 @@ GET /api/weather?city=X              cache hit  -> {"status": "cached", "data": 
 GET /api/pipeline/status/{run_id}    live stage of the running pipeline (React polls this)
 GET /api/weather/latest?city=X       newest stored record (call once status is "done")
 GET /api/weather/recent?limit=8      cities anyone searched recently, newest first
+GET /api/analytics/summary?window=1M Spark results for all cities (1W, 1M, 6M or 1Y)
+GET /api/analytics/trend?city=X&days=30  daily average temperature + rolling 7-day average
 GET /health
 """
 
@@ -107,6 +109,24 @@ def recent_weather(limit: int = Query(8, ge=1, le=24)):
     """Cities anyone has searched recently, newest first (powers the cards under the search box)."""
     try:
         return {"data": db.list_recent(limit)}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database unavailable: {e}")
+
+
+@app.get("/api/analytics/summary")
+def analytics_summary(window: str = Query("1M", pattern="^(1W|1M|6M|1Y)$")):
+    """Spark results for every analysed city over one window. data is null until the Spark job has run."""
+    try:
+        return {"data": db.get_analytics(window)}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database unavailable: {e}")
+
+
+@app.get("/api/analytics/trend")
+def analytics_trend(city: str = Query(..., max_length=100), days: int = Query(30, ge=7, le=365)):
+    """Daily average temperature (with rolling 7-day average) for the chart."""
+    try:
+        return {"city": city, "data": db.get_trend(_clean_city(city), days)}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database unavailable: {e}")
 

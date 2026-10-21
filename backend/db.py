@@ -80,3 +80,44 @@ def list_recent(limit: int) -> list[dict]:
     with _cursor() as cur:
         cur.execute(_SELECT + " ORDER BY fetched_at DESC LIMIT %s", (limit,))
         return [_to_dict(row) for row in cur.fetchall()]
+
+
+ANALYTICS_COLUMNS = [
+    "city", "observations", "avg_temp", "min_temp", "max_temp", "avg_humidity", "avg_pressure",
+    "avg_wind_speed", "max_wind_speed", "rainy_hours", "rainy_pct",
+]
+
+
+def get_analytics(window: str) -> dict | None:
+    """All analysed cities for one window (1W/1M/6M/1Y), hottest first. None until the Spark job has run."""
+    with _cursor() as cur:
+        cur.execute(
+            f"""SELECT {', '.join(ANALYTICS_COLUMNS)}, window_start, window_end, computed_at
+                FROM weather_analytics WHERE window_label = %s ORDER BY avg_temp DESC""",
+            (window,),
+        )
+        rows = cur.fetchall()
+    if not rows:
+        return None
+    n = len(ANALYTICS_COLUMNS)
+    first = rows[0]
+    return {
+        "window": window,
+        "window_start": first[n],
+        "window_end": first[n + 1],
+        "computed_at": first[n + 2],
+        "cities": [dict(zip(ANALYTICS_COLUMNS, r[:n])) for r in rows],
+    }
+
+
+def get_trend(city: str, days: int) -> list[dict]:
+    """Daily average temperature (+ rolling 7-day average) for the last `days` days of the city's data."""
+    with _cursor() as cur:
+        cur.execute(
+            """SELECT day, avg_temp, rolling_7d_avg_temp FROM weather_daily_trend
+               WHERE lower(city) = lower(%s)
+                 AND day > (SELECT max(day) FROM weather_daily_trend WHERE lower(city) = lower(%s)) - %s
+               ORDER BY day""",
+            (city, city, days),
+        )
+        return [{"day": d, "avg_temp": a, "rolling_7d_avg_temp": r} for d, a, r in cur.fetchall()]

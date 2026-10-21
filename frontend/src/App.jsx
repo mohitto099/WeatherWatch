@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AnalyticsPanel from "./components/AnalyticsPanel.jsx";
 import RecentCities from "./components/RecentCities.jsx";
 import SearchBar from "./components/SearchBar.jsx";
 import StepTracker from "./components/StepTracker.jsx";
@@ -55,6 +56,8 @@ export default function App() {
         {phase === "done" && data && <WeatherCard data={data} source={source} elapsedMs={elapsedMs} />}
 
         <RecentCities cities={recent} activeCity={phase === "done" ? data?.city : city} busy={busy} onPick={pickRecent} />
+
+        <AnalyticsPanel focusCity={phase === "done" ? data?.city : null} />
       </main>
     </>
   );

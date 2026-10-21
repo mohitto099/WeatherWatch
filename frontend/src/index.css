@@ -213,6 +213,41 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .mini-age { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 .mini-age.stale { color: #ffe29a; }
 
+/* historical analytics (Spark) */
+.analytics { margin-top: 44px; }
+.an-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.an-head h3 { margin: 0; font-size: 0.95rem; font-weight: 600; color: rgba(255, 255, 255, 0.88); letter-spacing: 0.04em; text-transform: uppercase; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4); }
+.an-tag { margin-left: 8px; padding: 3px 9px; border-radius: 999px; font-size: 0.68rem; letter-spacing: 0.02em; text-transform: none; background: rgba(255, 170, 60, 0.28); border: 1px solid rgba(255, 190, 100, 0.6); color: #ffe2b0; }
+.seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); }
+.seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 700; font-size: 0.82rem; padding: 6px 15px; border-radius: 999px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.seg button:hover { color: #fff; }
+.seg button.on { background: #fff; color: #0f2a52; }
+.an-card { margin-top: 14px; padding: 22px; }
+.an-sub { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted); }
+.an-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.an-chip { font-size: 0.8rem; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); border: 1px solid var(--line); }
+.an-chip b { font-weight: 700; }
+.an-table { display: grid; gap: 4px; }
+.an-row { display: grid; grid-template-columns: 1.15fr 2fr 1.35fr 0.8fr 0.7fr; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; font-size: 0.9rem; text-align: left; color: #fff; font-family: inherit; border: 1px solid transparent; background: transparent; }
+.an-th { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 4px; }
+.an-data { cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+.an-data:hover { background: rgba(255, 255, 255, 0.12); transform: translateX(3px); }
+.an-data.sel { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.55); }
+.an-city { font-weight: 700; }
+.an-avg { display: flex; align-items: center; gap: 10px; }
+.an-avg b { min-width: 3.2em; font-size: 0.95rem; }
+.an-bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.an-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8fd3ff, #ffd86b 55%, #ff8a5c); transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+.an-trend { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.an-trend-title { margin: 0 0 8px; font-size: 0.92rem; }
+.an-trend-title span { color: var(--muted); font-size: 0.78rem; }
+.trend { width: 100%; height: auto; display: block; overflow: visible; }
+.tc-grid { stroke: rgba(255, 255, 255, 0.18); stroke-width: 1; stroke-dasharray: 3 4; }
+.tc-label { fill: rgba(255, 255, 255, 0.72); font-size: 11px; }
+.tc-daily { fill: none; stroke: rgba(255, 255, 255, 0.4); stroke-width: 1.2; stroke-linejoin: round; }
+.tc-roll { fill: none; stroke: #fff; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.4s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
 @media (max-width: 520px) {
   .hero h1 { font-size: 2.1rem; }
   .temp { font-size: 4.2rem; }
@@ -220,9 +255,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .metrics { grid-template-columns: 1fr; }
   .search-row { flex-direction: column; }
   .search-row > button { padding: 14px; }
+  .hide-sm { display: none; }
+  .an-row { grid-template-columns: 1.2fr 2.2fr 0.8fr; }
 }
 
 /* respect users who prefer less motion: keep the scenes, stop the movement */
 @media (prefers-reduced-motion: reduce) {
   .bg *, .bg-layer, .card, .hero, .search, .tip, .mini, .wx-icon, .status, .step .dot { animation: none !important; }
+  .tc-roll { animation: none !important; stroke-dashoffset: 0; }
 }
