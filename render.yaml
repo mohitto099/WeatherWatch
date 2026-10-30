@@ -1,0 +1,30 @@
+services:
+  # Backend Web Service (FastAPI + Pipeline)
+  - type: web
+    name: weather-watch-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt -r backend/requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: .:./backend:./pipeline
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: SUPABASE_DB_URL
+        sync: false
+
+  # Frontend Static Site (React + Vite)
+  - type: web
+    name: weather-watch-frontend
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
