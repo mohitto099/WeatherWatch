@@ -1,68 +1,39 @@
-# WeatherWatch — Phase 1: Core ETL
+# 🌤️ WeatherWatch: Serverless Data Pipeline & Analytics
 
-This is the foundation layer: extract → transform → quality-check → load,
-running as a plain Python script (no Airflow, no FastAPI yet). The goal is
-to prove the core data engineering logic works against real data before
-wrapping it in orchestration.
+**[👉 Try it out yourself!](https://weather-watch-frontend-63g3.onrender.com)** *(Live Dashboard)*
 
-## Setup
+WeatherWatch is an end-to-end data engineering platform and interactive dashboard that executes on-demand ETL (Extract, Transform, Load) pipelines for weather data.
 
-1. **Create the database table**
-   Open your Supabase project → SQL Editor → paste and run `sql/schema.sql`.
+Initially built with a heavy orchestration stack (Dockerized Apache Airflow and PySpark), the architecture has been refactored for the cloud as a **100% serverless, zero-cost architecture** using Render and Supabase, while maintaining real-time pipeline execution tracking on the frontend.
 
-2. **Install dependencies**
-   ```bash
-   cd weather-watch
-   python -m venv venv
-   source venv/bin/activate   # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+## ✨ Features
 
-3. **Configure secrets**
-   ```bash
-   cp .env.example .env
-   ```
-   Then edit `.env` and paste your real Supabase connection string
-   (Supabase → Settings → Database → Connection string → URI).
-   Open-Meteo needs no API key.
+* **On-Demand ETL Execution:** Users trigger live Python data pipelines just by searching for a city.
+* **Real-Time Stage Tracking:** The React frontend polls the backend to visually track pipeline stages (`Extracting` -> `Transforming` -> `Loading`) in real-time.
+* **Smart Data Caching:** Subsequent searches for the same city within a defined window skip the pipeline and serve cached data from PostgreSQL to prevent API rate limits.
+* **Historical Trend Analytics:** View rolling averages and historical weather patterns for previously searched cities.
+* **Cloud-Native Deployment:** Fully hosted on Render (Web Service + Static Site) and Supabase (PostgreSQL Connection Pooler).
 
-## Run it
+## 🏗️ Architecture
 
-```bash
-cd pipeline
-python run_pipeline.py "Mumbai"
-python run_pipeline.py "Mumbai" "London" "Tokyo"
-```
+### Cloud Deployment (Current)
 
-Expected output: one line per city showing `OK - inserted row id N`,
-`SKIPPED - duplicate record`, or `FAILED - <reason>`.
+* **Frontend:** React + Vite hosted on a Render Static Site.
+* **Backend API & ETL Runner:** FastAPI hosted on a Render Web Service. It handles geocoding, triggers the Python ETL scripts (`extract.py`, `transform.py`, `load.py`) in background threads, and manages pipeline status states.
+* **Database:** Supabase PostgreSQL Free Tier.
+* **External APIs:** Open-Meteo Geocoding and Forecast APIs.
 
-You can also run each stage on its own to debug it in isolation:
-```bash
-python extract.py      # prints raw geocoded + weather JSON
-python transform.py    # prints the cleaned, validated record
-python load.py         # runs the full chain and inserts one row
-```
+### Local / Legacy Orchestration
 
-## What's next (not in this phase)
+The repository also includes the original infrastructure code designed for local development:
 
-- Wrap `extract → transform → load` into an Airflow DAG (4 tasks)
-- Add the FastAPI backend (cache check, trigger DAG, status polling)
-- Add the React frontend
-- Backfill historical data + add Spark analytics
+* `airflow/`: Dockerized Apache Airflow DAGs for local pipeline orchestration.
+* `spark/`: Dockerized PySpark environment for heavy batch analytics and trend processing.
 
-## File map
+## 🚀 Tech Stack
 
-```
-weather-watch/
-├── .env.example       # template for secrets (safe to commit)
-├── .gitignore         # keeps .env and junk out of git
-├── requirements.txt
-├── sql/
-│   └── schema.sql     # current_weather + weather_history tables (migrate_to_two_tables.sql upgrades an old database)
-└── pipeline/
-    ├── extract.py       # Task 1: extract + validate
-    ├── transform.py     # Task 2: transform + quality check
-    ├── load.py           # Task 3: load (history append + current upsert)
-    └── run_pipeline.py   # ties the three stages together, standalone
-```
+* **Frontend:** React, Vite, Tailwind CSS
+* **Backend:** Python 3, FastAPI, Uvicorn
+* **Data Engineering:** Pandas (Transformations), SQLAlchemy/psycopg2 (Loading)
+* **Database:** PostgreSQL (Supabase)
+* **Deployment:** Render, GitHub Actions
