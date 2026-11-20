@@ -58,6 +58,10 @@ export default function App() {
         <RecentCities cities={recent} activeCity={phase === "done" ? data?.city : city} busy={busy} onPick={pickRecent} />
 
         <AnalyticsPanel focusCity={phase === "done" ? data?.city : null} />
+
+        <footer style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid var(--line)', textAlign: 'center', fontSize: '0.8rem', color: 'var(--muted)' }}>
+          Developed by Mohit Kotwal · <a href="https://github.com/mohitto099/WeatherWatch" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--muted)', textDecoration: 'underline' }}>GitHub</a>
+        </footer>
       </main>
     </>
   );
